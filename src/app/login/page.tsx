@@ -136,7 +136,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2024 Komite PPI — RSUD Kab. Lombok Utara
+          © 2026 Komite PPI — RSUD Kab. Lombok Utara
         </p>
       </div>
     </div>
