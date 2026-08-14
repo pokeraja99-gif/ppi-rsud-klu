@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,10 +53,8 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md px-4 animate-fade-in-up">
         {/* Hospital branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-emerald-800 shadow-lg shadow-green-700/25 mb-4">
-            <ShieldCheck className="w-10 h-10 text-white" />
-          </div>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Image src="/logo.png" alt="Logo RSUD KLU" width={80} height={80} className="mb-4 drop-shadow-xl" />
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
             Sistem Informasi PPI
           </h1>

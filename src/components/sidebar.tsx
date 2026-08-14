@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -67,9 +68,7 @@ export function Sidebar() {
       {/* Logo / Header */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/logo.png" alt="Logo RSUD KLU" width={40} height={40} className="object-contain drop-shadow-md" />
           <div>
             <h2 className="font-bold text-white text-sm leading-tight">SI-PPI</h2>
             <p className="text-[10px] text-emerald-200/70 leading-tight">RSUD Kab. Lombok Utara</p>
