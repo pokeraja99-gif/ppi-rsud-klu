@@ -121,8 +121,7 @@ export default function DocumentsPage() {
     setUploading(true);
 
     try {
-      let fileUrl = "/uploads/placeholder.pdf";
-
+      let fileUrl;
       if (uploadForm.file) {
         const formData = new FormData();
         formData.append("file", uploadForm.file);
@@ -131,9 +130,16 @@ export default function DocumentsPage() {
           body: formData,
         });
         const uploadData = await uploadRes.json();
-        if (uploadRes.ok) {
-          fileUrl = uploadData.fileUrl;
+        if (!uploadRes.ok) {
+          alert(`Upload gagal: ${uploadData.error || 'Unknown error'}`);
+          setUploading(false);
+          return;
         }
+        fileUrl = uploadData.fileUrl;
+      } else {
+        alert("Pilih file dokumen terlebih dahulu!");
+        setUploading(false);
+        return;
       }
 
       const res = await fetch("/api/documents", {

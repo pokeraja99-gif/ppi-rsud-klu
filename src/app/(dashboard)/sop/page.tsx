@@ -104,9 +104,16 @@ export default function SopPage() {
           body: formData,
         });
         const uploadData = await uploadRes.json();
-        if (uploadRes.ok) {
-          fileUrl = uploadData.fileUrl;
+        if (!uploadRes.ok) {
+          alert(`Upload gagal: ${uploadData.error || 'Unknown error'}`);
+          setUploading(false);
+          return;
         }
+        fileUrl = uploadData.fileUrl;
+      } else {
+        alert("Pilih file dokumen terlebih dahulu!");
+        setUploading(false);
+        return;
       }
 
       const res = await fetch("/api/sop", {
