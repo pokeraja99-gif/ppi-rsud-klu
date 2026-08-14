@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ fileUrl: blob.url, fileName: fileName }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload gagal" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Upload gagal" }, { status: 500 });
   }
 }
