@@ -24,6 +24,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Username tidak ditemukan");
         }
 
+        if (!user.isActive) {
+          throw new Error("Akun ini telah dinonaktifkan");
+        }
+
         const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {

@@ -64,8 +64,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: "Cannot delete your own admin account" }, { status: 400 });
     }
 
-    await prisma.user.delete({
+    await prisma.user.update({
       where: { id: userId },
+      data: { isActive: false },
     });
 
     return NextResponse.json({ success: true });
