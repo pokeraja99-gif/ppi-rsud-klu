@@ -390,7 +390,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
               {dashboardData.recentActivities.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground text-sm">
                   Belum ada aktivitas terbaru
@@ -428,7 +428,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </CardContent>
         </Card>

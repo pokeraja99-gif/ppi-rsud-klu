@@ -5,6 +5,21 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
+function getRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 1) return 'baru saja';
+  if (diffMin < 60) return `${diffMin} menit lalu`;
+  if (diffHour < 24) return `${diffHour} jam lalu`;
+  if (diffDay === 1) return 'kemarin';
+  if (diffDay < 7) return `${diffDay} hari lalu`;
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -168,42 +183,116 @@ export async function GET() {
       { name: "Momen 5", value: m5Ops > 0 ? Math.round((m5Comp/m5Ops)*100) : 0, label: "Setelah Kontak Lingkungan" },
     ];
 
-    // Fetch recent activities
-    const recentLogs = await prisma.formLogbookIpcn.findMany({
-      where: isAdmin ? {} : unitFilter,
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: { user: { select: { name: true } } }
-    });
+    // Fetch recent activities from ALL form tables
+    const userSelect = { select: { name: true, unit: true } };
+    const take5Desc = { orderBy: { createdAt: 'desc' as const }, take: 5 };
 
-    const recentSops = await prisma.sopDocument.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
+    const [
+      recentAuditTangan,
+      recentAuditFasilitas,
+      recentAuditApd,
+      recentBundleIdo,
+      recentBundleVap,
+      recentBundlePlabsi,
+      recentBundleCauti,
+      recentMonitoringIpal,
+      recentLimbah,
+      recentLinenKotor,
+      recentBendaTajam,
+      recentLimbahCair,
+      recentKamarJenazah,
+      recentTertusukJarum,
+      recentLinenLaundry,
+      recentPretestGizi,
+      recentInsidenHais,
+      recentLogbook,
+      recentCuciTangan,
+      recentIsk,
+      recentSops,
+      recentOtherDocs,
+    ] = await Promise.all([
+      prisma.formAuditKebersihanTangan.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditFasilitasKebersihanTangan.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditKepatuhanApd.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formBundleIdo.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formBundleVap.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formBundlePlabsi.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formBundleCauti.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formMonitoringIpal.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditPembuanganLimbah.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditLinenKotor.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditBendaTajam.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formAuditLimbahCair.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formMonitoringKamarJenazah.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formLaporanTertusukJarum.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formMonitoringLinenLaundry.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formPretestEdukasiGizi.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formInsidenHais.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formLogbookIpcn.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formCuciTangan.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.formISK.findMany({ ...take5Desc, include: { user: userSelect } }),
+      prisma.sopDocument.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
+      prisma.otherDocument.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
+    ]);
 
-    const activities = [
-      ...recentLogs.map(log => ({
+    type ActivityItem = { user: string; action: string; unit: string; time: Date; type: string };
+
+    const mapForm = (items: any[], formLabel: string, unitField?: string): ActivityItem[] =>
+      items.map(item => ({
+        user: item.user?.name || '-',
+        action: `mengisi ${formLabel}`,
+        unit: item[unitField || 'ruangan'] || item.user?.unit || '-',
+        time: item.createdAt,
+        type: 'form',
+      }));
+
+    const activities: ActivityItem[] = [
+      ...mapForm(recentAuditTangan, 'Form Audit Kebersihan Tangan'),
+      ...mapForm(recentAuditFasilitas, 'Form Audit Fasilitas Kebersihan Tangan', 'unitRuangan'),
+      ...mapForm(recentAuditApd, 'Form Audit Kepatuhan APD'),
+      ...mapForm(recentBundleIdo, 'Checklist Bundle IDO'),
+      ...mapForm(recentBundleVap, 'Checklist Bundle VAP'),
+      ...mapForm(recentBundlePlabsi, 'Checklist Bundle PLABSI/CLABSI'),
+      ...mapForm(recentBundleCauti, 'Checklist Bundle CAUTI'),
+      ...mapForm(recentMonitoringIpal, 'Form Monitoring IPAL'),
+      ...mapForm(recentLimbah, 'Form Audit Pembuangan Limbah', 'unitRuangan'),
+      ...mapForm(recentLinenKotor, 'Form Audit Linen Kotor'),
+      ...mapForm(recentBendaTajam, 'Form Audit Benda Tajam'),
+      ...mapForm(recentLimbahCair, 'Form Audit Limbah Cair'),
+      ...mapForm(recentKamarJenazah, 'Form Monitoring Kamar Jenazah'),
+      ...mapForm(recentTertusukJarum, 'Laporan Tertusuk Jarum', 'unitInstalasi'),
+      ...mapForm(recentLinenLaundry, 'Form Monitoring Linen/Laundry'),
+      ...mapForm(recentPretestGizi, 'Pre-Test Edukasi PPI Gizi'),
+      ...mapForm(recentInsidenHais, 'Laporan Insiden HAIs'),
+      ...recentLogbook.map(log => ({
         user: log.user?.name || log.ipcnName,
-        action: `mengisi Logbook: ${log.activityType}`,
+        action: `mengisi Logbook IPCN: ${log.activityType}`,
         unit: log.room,
         time: log.createdAt,
-        type: 'form'
+        type: 'form',
       })),
+      ...mapForm(recentCuciTangan, 'Form Audit Cuci Tangan', 'room'),
+      ...mapForm(recentIsk, 'Form Surveilans ISK'),
       ...recentSops.map(sop => ({
         user: sop.uploadedBy,
-        action: `mengunggah dokumen SOP: ${sop.title}`,
+        action: `mengunggah SOP: ${sop.title}`,
         unit: 'Komite PPI',
         time: sop.createdAt,
-        type: 'upload'
-      }))
+        type: 'upload',
+      })),
+      ...recentOtherDocs.map(doc => ({
+        user: doc.uploadedBy,
+        action: `mengunggah Dokumen ${doc.category}: ${doc.title}`,
+        unit: 'Komite PPI',
+        time: doc.createdAt,
+        type: 'upload',
+      })),
     ];
 
     activities.sort((a, b) => b.time.getTime() - a.time.getTime());
-    const recentActivities = activities.slice(0, 5).map(act => ({
+    const recentActivities = activities.slice(0, 10).map(act => ({
       ...act,
-      time: act.time.toLocaleString('id-ID', {
-        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-      }) + ' WIB'
+      time: getRelativeTime(act.time),
     }));
 
     return NextResponse.json({
