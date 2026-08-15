@@ -81,10 +81,12 @@ function generateComplianceStats(data: any[], config: any) {
       for (const row of data) {
         for (const key of keysToCheck) {
           const val = row[key];
-          if (val === "Ya" || val === "YA" || val === "Y" || val === true) {
+          const strVal = typeof val === 'string' ? val.trim().toUpperCase() : null;
+          
+          if (strVal === "YA" || strVal === "Y" || strVal === "HANDRUB" || strVal === "HANDWASH" || val === true) {
             sectionYa++;
             totalYa++;
-          } else if (val === "Tidak" || val === "TIDAK" || val === "T" || val === false) {
+          } else if (strVal === "TIDAK" || strVal === "T" || val === false) {
             sectionTidak++;
             totalTidak++;
           }

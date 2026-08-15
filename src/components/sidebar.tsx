@@ -52,9 +52,9 @@ const navItems = [
     icon: FolderOpen,
   },
   {
-    title: "Manajemen Pengguna",
-    href: "/users",
-    icon: Users,
+    title: "Pengaturan",
+    href: "/settings",
+    icon: Database,
     adminOnly: true,
   },
 ];

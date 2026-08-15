@@ -72,7 +72,7 @@ const auditKebersihanTangan: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -159,7 +159,7 @@ const auditFasilitasKebersihanTangan: FormConfig = {
         {
           name: "auditorIpcn",
           label: "2. Auditor IPCN",
-          type: "radio",
+          type: "checkbox",
           required: true,
           options: opts(
             "Nurianto Dhama Setiawan, A.Md., Kep",
@@ -257,7 +257,7 @@ const auditKepatuhanApd: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -345,7 +345,7 @@ const checklistBundleIdo: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -442,7 +442,7 @@ const checklistBundleVap: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -527,7 +527,7 @@ const checklistBundlePlabsi: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -606,7 +606,7 @@ const checklistBundleCauti: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "dropdown",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -932,7 +932,7 @@ const auditLinenKotor: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "radio",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -1052,7 +1052,7 @@ const auditBendaTajam: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "radio",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",
@@ -1155,7 +1155,7 @@ const auditLimbahCair: FormConfig = {
         {
           name: "ipcn",
           label: "IPCN",
-          type: "radio",
+          type: "checkbox",
           required: true,
           options: opts(
             "NURIANTO DHAMA SETIAWAN, A.Md.KEP",

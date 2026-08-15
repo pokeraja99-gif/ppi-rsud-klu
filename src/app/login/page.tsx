@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -17,6 +17,18 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("ppi_username");
+    const savedPassword = localStorage.getItem("ppi_password");
+    if (savedUsername && savedPassword) {
+      setUsername(savedUsername);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +45,13 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
+        if (rememberMe) {
+          localStorage.setItem("ppi_username", username);
+          localStorage.setItem("ppi_password", password);
+        } else {
+          localStorage.removeItem("ppi_username");
+          localStorage.removeItem("ppi_password");
+        }
         router.push("/dashboard");
         router.refresh();
       }
@@ -114,6 +133,19 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+                  Ingat saya
+                </Label>
               </div>
 
               <Button

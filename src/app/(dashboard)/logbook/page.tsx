@@ -63,10 +63,7 @@ interface Logbook {
   };
 }
 
-const IPCN_NAMES = [
-  "Nurianto Dhama Setiawan",
-  "Ni Luh Suartini",
-];
+// IPCN names are now fetched dynamically from API
 
 const ACTIVITY_TYPES = [
   "Surveilans HAIs/kunjungan pasien berisiko",
@@ -95,6 +92,7 @@ export default function LogbookPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [ipcnOptions, setIpcnOptions] = useState<string[]>([]);
   
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -126,6 +124,21 @@ export default function LogbookPage() {
   useEffect(() => {
     fetchLogbooks();
   }, [search]);
+
+  useEffect(() => {
+    const fetchIpcns = async () => {
+      try {
+        const res = await fetch("/api/settings/ipcn");
+        if (res.ok) {
+          const data = await res.json();
+          setIpcnOptions(data.map((item: any) => item.name));
+        }
+      } catch (err) {
+        console.error("Failed to fetch IPCNs:", err);
+      }
+    };
+    fetchIpcns();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,7 +265,7 @@ export default function LogbookPage() {
                       <SelectValue placeholder="Pilih Nama IPCN" />
                     </SelectTrigger>
                     <SelectContent>
-                      {IPCN_NAMES.map((name) => (
+                      {ipcnOptions.map((name) => (
                         <SelectItem key={name} value={name}>{name}</SelectItem>
                       ))}
                     </SelectContent>

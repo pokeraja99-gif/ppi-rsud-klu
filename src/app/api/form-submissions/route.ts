@@ -52,6 +52,8 @@ export async function POST(req: Request) {
     for (const key in parsedData) {
       if (typeof parsedData[key] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsedData[key])) {
         parsedData[key] = new Date(parsedData[key]).toISOString();
+      } else if (Array.isArray(parsedData[key])) {
+        parsedData[key] = parsedData[key].join(", ");
       }
     }
 
