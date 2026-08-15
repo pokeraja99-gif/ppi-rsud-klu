@@ -96,6 +96,7 @@ export async function POST(req: Request) {
       userId,
       ...parsedData,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     const result = await db.select().from(model).orderBy(desc(model.id)).limit(1);
