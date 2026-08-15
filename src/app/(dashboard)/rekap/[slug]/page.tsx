@@ -191,7 +191,7 @@ export default function RekapDataPage() {
   };
 
   const handleExportCSV = () => {
-    if (filteredData.length === 0) return;
+    if (!config || filteredData.length === 0) return;
 
     const headers = ["No", ...columns.map(col => col.label)];
     const csvRows = [headers.join(",")];
