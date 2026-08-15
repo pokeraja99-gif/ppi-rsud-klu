@@ -28,8 +28,7 @@ function toCamelCase(str: string) {
 function getExpectedColumns(config: any) {
   const columns: { label: string; key: string }[] = [];
   
-  columns.push({ label: "Tanggal Dibuat", key: "createdAt" });
-  
+
   for (const section of config.sections) {
     for (const field of section.fields) {
       if (field.type === "section") continue;
@@ -373,7 +372,7 @@ export default function RekapDataPage() {
       <Card className="border-0 shadow-md">
         <CardHeader className="bg-slate-50 border-b flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
           <CardTitle className="text-sm font-semibold">Tabel Rekapitulasi</CardTitle>
-          <div className="flex flex-col md:flex-row gap-3 items-end md:items-center">
+          <div className="flex flex-col md:flex-row gap-3 items-end">
             <div className="flex items-center gap-2">
               <div className="grid gap-1.5">
                 <Label htmlFor="start-date" className="text-xs text-muted-foreground">Dari Tanggal</Label>
@@ -387,7 +386,7 @@ export default function RekapDataPage() {
                   />
                 </div>
               </div>
-              <span className="text-muted-foreground mt-4">-</span>
+              <span className="text-muted-foreground mt-5">-</span>
               <div className="grid gap-1.5">
                 <Label htmlFor="end-date" className="text-xs text-muted-foreground">Sampai Tanggal</Label>
                 <div className="relative">
@@ -401,7 +400,7 @@ export default function RekapDataPage() {
                 </div>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="gap-2 h-8" onClick={handleExportCSV}>
+            <Button size="sm" className="gap-2 h-8 bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm" onClick={handleExportCSV}>
               <Download className="w-4 h-4" />
               Export CSV
             </Button>

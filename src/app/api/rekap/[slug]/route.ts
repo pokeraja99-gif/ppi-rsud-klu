@@ -1,13 +1,32 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import * as schema from "@/db/schema";
+import { desc, inArray } from "drizzle-orm";
 
-function toCamelCase(str: string) {
-  return str
-    .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())
-    .replace(/[^a-zA-Z0-9]/g, "");
-}
+const modelMap: Record<string, any> = {
+  "cuci-tangan": schema.FormCuciTangan,
+  "isk": schema.FormISK,
+  "audit-kebersihan-tangan": schema.FormAuditKebersihanTangan,
+  "audit-fasilitas-kebersihan-tangan": schema.FormAuditFasilitasKebersihanTangan,
+  "audit-kepatuhan-apd": schema.FormAuditKepatuhanApd,
+  "bundle-ido": schema.FormBundleIdo,
+  "bundle-vap": schema.FormBundleVap,
+  "bundle-plabsi": schema.FormBundlePlabsi,
+  "bundle-cauti": schema.FormBundleCauti,
+  "monitoring-ipal": schema.FormMonitoringIpal,
+  "audit-pembuangan-limbah": schema.FormAuditPembuanganLimbah,
+  "audit-linen-kotor": schema.FormAuditLinenKotor,
+  "audit-benda-tajam": schema.FormAuditBendaTajam,
+  "audit-limbah-cair": schema.FormAuditLimbahCair,
+  "monitoring-kamar-jenazah": schema.FormMonitoringKamarJenazah,
+  "laporan-tertusuk-jarum": schema.FormLaporanTertusukJarum,
+  "monitoring-linen-laundry": schema.FormMonitoringLinenLaundry,
+  "pretest-edukasi-gizi": schema.FormPretestEdukasiGizi,
+  "insiden-hais": schema.FormInsidenHais,
+  "logbook-ipcn": schema.FormLogbookIpcn
+};
 
 export async function GET(
   req: Request,
@@ -15,14 +34,10 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    // Remove authentication block for now so it works without login (or use fallback)
     // if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const slug = params.slug;
-    const modelName = toCamelCase("form-" + slug);
-
-    // @ts-ignore
-    const model = prisma[modelName];
+    const model = modelMap[slug];
 
     if (!model) {
        return NextResponse.json(
@@ -31,12 +46,7 @@ export async function GET(
       );
     }
 
-    // Fetch all records, optionally order by date
-    const records = await model.findMany({
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    const records = await db.select().from(model).orderBy(desc(model.createdAt));
 
     return NextResponse.json({ success: true, data: records }, { status: 200 });
   } catch (error) {
@@ -57,7 +67,6 @@ export async function DELETE(
     // if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const slug = params.slug;
-    const modelName = toCamelCase("form-" + slug);
     const body = await req.json();
     const { ids } = body;
 
@@ -65,8 +74,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "No IDs provided" }, { status: 400 });
     }
 
-    // @ts-ignore
-    const model = prisma[modelName];
+    const model = modelMap[slug];
 
     if (!model) {
       return NextResponse.json(
@@ -75,13 +83,7 @@ export async function DELETE(
       );
     }
 
-    await model.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
+    await db.delete(model).where(inArray(model.id, ids));
 
     return NextResponse.json({ success: true, message: "Berhasil menghapus data terpilih" }, { status: 200 });
   } catch (error) {

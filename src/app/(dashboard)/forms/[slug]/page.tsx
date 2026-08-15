@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { getFormConfig } from "@/lib/form-configs";
 import { DynamicForm } from "@/components/forms/DynamicForm";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { Ipcn, Ruangan, Profesi } from "@/db/schema";
+import { asc } from "drizzle-orm";
 
 interface PageProps {
   params: {
@@ -18,9 +20,9 @@ export default async function DynamicFormPage({ params }: PageProps) {
 
   // Fetch dynamic options from DB
   const [ipcns, ruangans, profesis] = await Promise.all([
-    prisma.ipcn.findMany({ orderBy: { name: 'asc' } }),
-    prisma.ruangan.findMany({ orderBy: { name: 'asc' } }),
-    prisma.profesi.findMany({ orderBy: { name: 'asc' } }),
+    db.select().from(Ipcn).orderBy(asc(Ipcn.name)),
+    db.select().from(Ruangan).orderBy(asc(Ruangan.name)),
+    db.select().from(Profesi).orderBy(asc(Profesi.name)),
   ]);
 
   // Clone config to inject dynamic options

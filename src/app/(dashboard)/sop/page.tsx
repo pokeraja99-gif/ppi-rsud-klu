@@ -130,6 +130,9 @@ export default function SopPage() {
         setDialogOpen(false);
         setUploadForm({ title: "", documentNumber: "", file: null });
         fetchDocuments();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Gagal mengunggah SOP");
       }
     } catch (err) {
       console.error("Upload failed:", err);

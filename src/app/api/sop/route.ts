@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { SopDocument } from "@/db/schema";
+import { desc, like, or, eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,17 +15,18 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
 
-    const sops = await prisma.sopDocument.findMany({
-      where: search
-        ? {
-            OR: [
-              { title: { contains: search } },
-              { documentNumber: { contains: search } },
-            ],
-          }
-        : {},
-      orderBy: { createdAt: "desc" },
-    });
+    let query = db.select().from(SopDocument).$dynamic();
+    
+    if (search) {
+      query = query.where(
+        or(
+          like(SopDocument.title, `%${search}%`),
+          like(SopDocument.documentNumber, `%${search}%`)
+        )
+      );
+    }
+
+    const sops = await query.orderBy(desc(SopDocument.createdAt));
 
     return NextResponse.json(sops);
   } catch (error) {
@@ -49,16 +52,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sop = await prisma.sopDocument.create({
-      data: {
-        title,
-        documentNumber,
-        fileUrl: fileUrl || "/uploads/placeholder.pdf",
-        uploadedBy: session.user.name,
-      },
+    const existingSop = await db.select().from(SopDocument).where(eq(SopDocument.documentNumber, documentNumber)).limit(1);
+    if (existingSop.length > 0) {
+      return NextResponse.json(
+        { error: "Nomor Dokumen sudah digunakan. Silakan gunakan nomor yang berbeda." },
+        { status: 400 }
+      );
+    }
+
+    await db.insert(SopDocument).values({
+      title,
+      documentNumber,
+      fileUrl: fileUrl || "/uploads/placeholder.pdf",
+      uploadedBy: session.user.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    return NextResponse.json(sop, { status: 201 });
+    const newSop = await db.select().from(SopDocument).orderBy(desc(SopDocument.id)).limit(1);
+
+    return NextResponse.json(newSop[0], { status: 201 });
   } catch (error) {
     console.error("POST SOP error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -79,9 +92,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
     }
 
-    await prisma.sopDocument.delete({
-      where: { id: parseInt(id) },
-    });
+    await db.delete(SopDocument).where(eq(SopDocument.id, parseInt(id)));
 
     return NextResponse.json({ message: "SOP berhasil dihapus" });
   } catch (error) {

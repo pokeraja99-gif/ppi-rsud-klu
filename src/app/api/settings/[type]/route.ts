@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { Ipcn, Ruangan, Profesi } from "@/db/schema";
+import { asc, eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,
@@ -11,13 +13,13 @@ export async function GET(
     let data;
     switch (type) {
       case "ipcn":
-        data = await prisma.ipcn.findMany({ orderBy: { createdAt: "asc" } });
+        data = await db.select().from(Ipcn).orderBy(asc(Ipcn.name));
         break;
       case "ruangan":
-        data = await prisma.ruangan.findMany({ orderBy: { createdAt: "asc" } });
+        data = await db.select().from(Ruangan).orderBy(asc(Ruangan.name));
         break;
       case "profesi":
-        data = await prisma.profesi.findMany({ orderBy: { createdAt: "asc" } });
+        data = await db.select().from(Profesi).orderBy(asc(Profesi.name));
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -48,19 +50,22 @@ export async function POST(
     let data;
     switch (type) {
       case "ipcn":
-        data = await prisma.ipcn.create({ data: { name } });
+        await db.insert(Ipcn).values({ name, createdAt: new Date(), updatedAt: new Date() });
+        data = await db.select().from(Ipcn).where(eq(Ipcn.name, name)).limit(1);
         break;
       case "ruangan":
-        data = await prisma.ruangan.create({ data: { name } });
+        await db.insert(Ruangan).values({ name, createdAt: new Date(), updatedAt: new Date() });
+        data = await db.select().from(Ruangan).where(eq(Ruangan.name, name)).limit(1);
         break;
       case "profesi":
-        data = await prisma.profesi.create({ data: { name } });
+        await db.insert(Profesi).values({ name, createdAt: new Date(), updatedAt: new Date() });
+        data = await db.select().from(Profesi).where(eq(Profesi.name, name)).limit(1);
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(data[0], { status: 201 });
   } catch (error) {
     console.error(`Error creating ${params.type}:`, error);
     return NextResponse.json(
@@ -85,13 +90,13 @@ export async function DELETE(
 
     switch (type) {
       case "ipcn":
-        await prisma.ipcn.delete({ where: { id: parseInt(id) } });
+        await db.delete(Ipcn).where(eq(Ipcn.id, parseInt(id)));
         break;
       case "ruangan":
-        await prisma.ruangan.delete({ where: { id: parseInt(id) } });
+        await db.delete(Ruangan).where(eq(Ruangan.id, parseInt(id)));
         break;
       case "profesi":
-        await prisma.profesi.delete({ where: { id: parseInt(id) } });
+        await db.delete(Profesi).where(eq(Profesi.id, parseInt(id)));
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });

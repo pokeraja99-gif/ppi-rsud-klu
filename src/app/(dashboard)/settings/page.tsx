@@ -101,15 +101,15 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Pengaturan</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Pengaturan</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Kelola opsi nama IPCN, ruangan, dan profesi untuk form.
           </p>
         </div>
-        <Button variant="outline" onClick={() => router.push("/users")} className="gap-2">
+        <Button variant="outline" onClick={() => router.push("/users")} className="gap-2 shadow-sm transition-all hover:shadow-md">
           <Users className="w-4 h-4" />
           Manajemen Pengguna
         </Button>
@@ -120,9 +120,9 @@ export default function SettingsPage() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-2 px-4 border-b-2 font-medium text-sm transition-all duration-300 ${
               activeTab === tab
-                ? "border-emerald-500 text-emerald-600"
+                ? "border-emerald-500 text-emerald-600 scale-105"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -131,60 +131,61 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="shadow-sm border-emerald-100/50">
+        <CardHeader className="bg-emerald-50/30 border-b border-emerald-100/30">
           <CardTitle>Kelola {tabLabels[activeTab]}</CardTitle>
           <CardDescription>
             Data ini akan muncul sebagai opsi pada dropdown di berbagai form.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleAdd} className="flex items-end gap-4 max-w-md">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="newName">Tambah Baru</Label>
+        <CardContent className="space-y-6 p-6">
+          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row items-end gap-4 max-w-xl">
+            <div className="space-y-2 flex-1 w-full">
+              <Label htmlFor="newName" className="text-emerald-700 font-medium">Tambah Baru</Label>
               <Input
                 id="newName"
                 placeholder={`Nama ${tabLabels[activeTab]}...`}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 required
+                className="focus-visible:ring-emerald-500 transition-all"
               />
             </div>
-            <Button type="submit" disabled={adding} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button type="submit" disabled={adding} className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md">
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
               Tambah
             </Button>
           </form>
 
           {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+            <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 animate-spin text-emerald-500/50" /></div>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-xl overflow-hidden shadow-sm bg-white ring-1 ring-black/5 max-h-[500px] overflow-y-auto relative">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>No</TableHead>
-                    <TableHead className="w-full">Nama</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
+                <TableHeader className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-20 font-semibold text-emerald-800">No</TableHead>
+                    <TableHead className="w-full font-semibold text-emerald-800">Nama</TableHead>
+                    <TableHead className="text-right font-semibold text-emerald-800">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {dataList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-12">
                         Belum ada data.
                       </TableCell>
                     </TableRow>
                   ) : (
                     dataList.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableRow key={item.id} className="group transition-colors hover:bg-emerald-50/40">
+                        <TableCell className="text-gray-500">{index + 1}</TableCell>
+                        <TableCell className="font-medium text-gray-700">{item.name}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            className="text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all"
                             onClick={() => handleDelete(item.id)}
                           >
                             <Trash2 className="w-4 h-4" />

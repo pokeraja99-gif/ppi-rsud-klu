@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { FormISK, User } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,11 +14,29 @@ export async function GET(req: NextRequest) {
 
     const isAdmin = session.user.role === "ADMIN";
 
-    const forms = await prisma.formISK.findMany({
-      where: isAdmin ? {} : { userId: parseInt(session.user.id) },
-      orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, unit: true } } },
-    });
+    let query = db.select({
+      id: FormISK.id,
+      userId: FormISK.userId,
+      date: FormISK.date,
+      patientName: FormISK.patientName,
+      medicalRecord: FormISK.medicalRecord,
+      catheterAction: FormISK.catheterAction,
+      symptoms: FormISK.symptoms,
+      createdAt: FormISK.createdAt,
+      user: {
+        name: User.name,
+        unit: User.unit,
+      }
+    })
+    .from(FormISK)
+    .leftJoin(User, eq(FormISK.userId, User.id))
+    .$dynamic();
+
+    if (!isAdmin) {
+      query = query.where(eq(FormISK.userId, parseInt(session.user.id)));
+    }
+
+    const forms = await query.orderBy(desc(FormISK.createdAt));
 
     return NextResponse.json(forms);
   } catch (error) {
@@ -42,18 +62,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const form = await prisma.formISK.create({
-      data: {
-        userId: parseInt(session.user.id),
-        date: new Date(date),
-        patientName,
-        medicalRecord,
-        catheterAction: catheterAction || null,
-        symptoms: symptoms || null,
-      },
+    await db.insert(FormISK).values({
+      userId: parseInt(session.user.id),
+      date: new Date(date),
+      patientName,
+      medicalRecord,
+      catheterAction: catheterAction || null,
+      symptoms: symptoms || null,
+      createdAt: new Date(),
     });
 
-    return NextResponse.json(form, { status: 201 });
+    const newForm = await db.select().from(FormISK).orderBy(desc(FormISK.id)).limit(1);
+
+    return NextResponse.json(newForm[0], { status: 201 });
   } catch (error) {
     console.error("POST ISK error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -1,7 +1,32 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import * as schema from "@/db/schema";
+import { desc } from "drizzle-orm";
+
+const modelMap: Record<string, any> = {
+  "cuci-tangan": schema.FormCuciTangan,
+  "isk": schema.FormISK,
+  "audit-kebersihan-tangan": schema.FormAuditKebersihanTangan,
+  "audit-fasilitas-kebersihan-tangan": schema.FormAuditFasilitasKebersihanTangan,
+  "audit-kepatuhan-apd": schema.FormAuditKepatuhanApd,
+  "bundle-ido": schema.FormBundleIdo,
+  "bundle-vap": schema.FormBundleVap,
+  "bundle-plabsi": schema.FormBundlePlabsi,
+  "bundle-cauti": schema.FormBundleCauti,
+  "monitoring-ipal": schema.FormMonitoringIpal,
+  "audit-pembuangan-limbah": schema.FormAuditPembuanganLimbah,
+  "audit-linen-kotor": schema.FormAuditLinenKotor,
+  "audit-benda-tajam": schema.FormAuditBendaTajam,
+  "audit-limbah-cair": schema.FormAuditLimbahCair,
+  "monitoring-kamar-jenazah": schema.FormMonitoringKamarJenazah,
+  "laporan-tertusuk-jarum": schema.FormLaporanTertusukJarum,
+  "monitoring-linen-laundry": schema.FormMonitoringLinenLaundry,
+  "pretest-edukasi-gizi": schema.FormPretestEdukasiGizi,
+  "insiden-hais": schema.FormInsidenHais,
+  "logbook-ipcn": schema.FormLogbookIpcn
+};
 
 function toCamelCase(str: string) {
   return str
@@ -51,16 +76,14 @@ export async function POST(req: Request) {
     
     for (const key in parsedData) {
       if (typeof parsedData[key] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsedData[key])) {
-        parsedData[key] = new Date(parsedData[key]).toISOString();
+        // Drizzle datetime doesn't need to be ISOString necessarily, JS Date is fine.
+        parsedData[key] = new Date(parsedData[key]);
       } else if (Array.isArray(parsedData[key])) {
         parsedData[key] = parsedData[key].join(", ");
       }
     }
 
-    const modelName = toCamelCase("form-" + formType);
-
-    // @ts-ignore
-    const model = prisma[modelName];
+    const model = modelMap[formType];
 
     if (!model) {
        return NextResponse.json(
@@ -69,15 +92,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await model.create({
-      data: {
-        userId,
-        ...parsedData,
-      },
+    await db.insert(model).values({
+      userId,
+      ...parsedData,
+      createdAt: new Date(),
     });
 
+    const result = await db.select().from(model).orderBy(desc(model.id)).limit(1);
+
     return NextResponse.json(
-      { success: true, id: result.id, message: "Berhasil disimpan di tabel terpisah!" },
+      { success: true, id: result[0]?.id, message: "Berhasil disimpan di tabel terpisah!" },
       { status: 201 }
     );
   } catch (error) {

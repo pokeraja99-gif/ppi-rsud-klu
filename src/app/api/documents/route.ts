@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { DocumentCategory } from "@prisma/client";
+import { db } from "@/lib/db";
+import { OtherDocument } from "@/db/schema";
+import { desc, eq, like, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,20 +16,24 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
 
-    const where: any = {};
+    let query = db.select().from(OtherDocument).$dynamic();
+
+    let condition = undefined;
 
     if (search) {
-      where.title = { contains: search };
+      condition = like(OtherDocument.title, `%${search}%`);
     }
 
     if (category && category !== "ALL") {
-      where.category = category as DocumentCategory;
+      const catCond = eq(OtherDocument.category, category as any);
+      condition = condition ? and(condition, catCond) : catCond;
     }
 
-    const docs = await prisma.otherDocument.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    if (condition) {
+      query = query.where(condition);
+    }
+
+    const docs = await query.orderBy(desc(OtherDocument.createdAt));
 
     return NextResponse.json(docs);
   } catch (error) {
@@ -54,16 +59,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const doc = await prisma.otherDocument.create({
-      data: {
-        title,
-        category: category as DocumentCategory,
-        fileUrl: fileUrl || "/uploads/placeholder.pdf",
-        uploadedBy: session.user.name,
-      },
+    await db.insert(OtherDocument).values({
+      title,
+      category,
+      fileUrl: fileUrl || "/uploads/placeholder.pdf",
+      uploadedBy: session.user.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    return NextResponse.json(doc, { status: 201 });
+    const newDoc = await db.select().from(OtherDocument).orderBy(desc(OtherDocument.id)).limit(1);
+
+    return NextResponse.json(newDoc[0], { status: 201 });
   } catch (error) {
     console.error("POST documents error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -84,9 +91,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
     }
 
-    await prisma.otherDocument.delete({
-      where: { id: parseInt(id) },
-    });
+    await db.delete(OtherDocument).where(eq(OtherDocument.id, parseInt(id)));
 
     return NextResponse.json({ message: "Dokumen berhasil dihapus" });
   } catch (error) {

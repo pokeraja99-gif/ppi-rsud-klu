@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { FormLogbookIpcn, User } from "@/db/schema";
+import { desc, eq, or, like } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {
@@ -15,23 +17,46 @@ export async function GET(request: Request) {
 
     const isAdmin = session.user.role === "ADMIN";
 
-    const logbooks = await prisma.formLogbookIpcn.findMany({
-      where: {
-        ...(isAdmin ? {} : { userId: Number(session.user.id) }),
-        OR: search ? [
-          { room: { contains: search } },
-          { description: { contains: search } },
-          { activityType: { contains: search } },
-          { ipcnName: { contains: search } }
-        ] : undefined
-      },
-      include: {
-        user: {
-          select: { name: true }
-        }
-      },
-      orderBy: { date: 'desc' }
-    });
+    let query = db.select({
+      id: FormLogbookIpcn.id,
+      userId: FormLogbookIpcn.userId,
+      date: FormLogbookIpcn.date,
+      ipcnName: FormLogbookIpcn.ipcnName,
+      room: FormLogbookIpcn.room,
+      activityType: FormLogbookIpcn.activityType,
+      description: FormLogbookIpcn.description,
+      findings: FormLogbookIpcn.findings,
+      followUp: FormLogbookIpcn.followUp,
+      followUpStatus: FormLogbookIpcn.followUpStatus,
+      proofUrl: FormLogbookIpcn.proofUrl,
+      createdAt: FormLogbookIpcn.createdAt,
+      user: {
+        name: User.name
+      }
+    })
+    .from(FormLogbookIpcn)
+    .leftJoin(User, eq(FormLogbookIpcn.userId, User.id))
+    .$dynamic();
+
+    if (!isAdmin) {
+      query = query.where(eq(FormLogbookIpcn.userId, Number(session.user.id)));
+    }
+
+    if (search) {
+      const condition = or(
+        like(FormLogbookIpcn.room, `%${search}%`),
+        like(FormLogbookIpcn.description, `%${search}%`),
+        like(FormLogbookIpcn.activityType, `%${search}%`),
+        like(FormLogbookIpcn.ipcnName, `%${search}%`)
+      );
+      if (isAdmin) {
+        query = query.where(condition);
+      } else {
+        query = query.where(eq(FormLogbookIpcn.userId, Number(session.user.id))).where(condition);
+      }
+    }
+
+    const logbooks = await query.orderBy(desc(FormLogbookIpcn.date));
 
     return NextResponse.json(logbooks);
   } catch (error) {
@@ -64,22 +89,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const newLogbook = await prisma.formLogbookIpcn.create({
-      data: {
-        date: new Date(date),
-        ipcnName,
-        room,
-        activityType,
-        description,
-        findings: findings || null,
-        followUp: followUp || null,
-        followUpStatus: followUpStatus || null,
-        proofUrl: proofUrl || null,
-        userId: Number(session.user.id)
-      }
+    await db.insert(FormLogbookIpcn).values({
+      date: new Date(date),
+      ipcnName,
+      room,
+      activityType,
+      description,
+      findings: findings || null,
+      followUp: followUp || null,
+      followUpStatus: followUpStatus || null,
+      proofUrl: proofUrl || null,
+      userId: Number(session.user.id),
+      createdAt: new Date(),
     });
 
-    return NextResponse.json(newLogbook, { status: 201 });
+    const newLogbook = await db.select().from(FormLogbookIpcn).orderBy(desc(FormLogbookIpcn.id)).limit(1);
+
+    return NextResponse.json(newLogbook[0], { status: 201 });
   } catch (error) {
     console.error("POST logbook error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -102,9 +128,8 @@ export async function DELETE(request: Request) {
 
     const isAdmin = session.user.role === "ADMIN";
 
-    const logbook = await prisma.formLogbookIpcn.findUnique({
-      where: { id: Number(id) }
-    });
+    const logbooks = await db.select().from(FormLogbookIpcn).where(eq(FormLogbookIpcn.id, Number(id))).limit(1);
+    const logbook = logbooks.length > 0 ? logbooks[0] : null;
 
     if (!logbook) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -114,9 +139,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.formLogbookIpcn.delete({
-      where: { id: Number(id) }
-    });
+    await db.delete(FormLogbookIpcn).where(eq(FormLogbookIpcn.id, Number(id)));
 
     return NextResponse.json({ success: true });
   } catch (error) {

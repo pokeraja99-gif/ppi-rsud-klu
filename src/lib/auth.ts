@@ -1,7 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "./prisma";
+import { db } from "@/lib/db";
+import { User } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,9 +18,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Username dan password harus diisi");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username },
-        });
+        const users = await db.select().from(User).where(eq(User.username, credentials.username)).limit(1);
+        const user = users.length > 0 ? users[0] : null;
 
         if (!user) {
           throw new Error("Username tidak ditemukan");

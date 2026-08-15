@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { FormCuciTangan, User } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,11 +14,35 @@ export async function GET(req: NextRequest) {
 
     const isAdmin = session.user.role === "ADMIN";
 
-    const forms = await prisma.formCuciTangan.findMany({
-      where: isAdmin ? {} : { userId: parseInt(session.user.id) },
-      orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, unit: true } } },
-    });
+    let query = db.select({
+      id: FormCuciTangan.id,
+      userId: FormCuciTangan.userId,
+      date: FormCuciTangan.date,
+      officerName: FormCuciTangan.officerName,
+      profession: FormCuciTangan.profession,
+      room: FormCuciTangan.room,
+      moment1: FormCuciTangan.moment1,
+      moment2: FormCuciTangan.moment2,
+      moment3: FormCuciTangan.moment3,
+      moment4: FormCuciTangan.moment4,
+      moment5: FormCuciTangan.moment5,
+      actionDone: FormCuciTangan.actionDone,
+      result: FormCuciTangan.result,
+      createdAt: FormCuciTangan.createdAt,
+      user: {
+        name: User.name,
+        unit: User.unit,
+      }
+    })
+    .from(FormCuciTangan)
+    .leftJoin(User, eq(FormCuciTangan.userId, User.id))
+    .$dynamic();
+
+    if (!isAdmin) {
+      query = query.where(eq(FormCuciTangan.userId, parseInt(session.user.id)));
+    }
+
+    const forms = await query.orderBy(desc(FormCuciTangan.createdAt));
 
     return NextResponse.json(forms);
   } catch (error) {
@@ -59,24 +85,25 @@ export async function POST(req: NextRequest) {
     if (totalMoments >= 4) result = "Patuh";
     else if (totalMoments >= 2) result = "Cukup";
 
-    const form = await prisma.formCuciTangan.create({
-      data: {
-        userId: parseInt(session.user.id),
-        date: new Date(date),
-        officerName,
-        profession,
-        room,
-        moment1: moment1 || false,
-        moment2: moment2 || false,
-        moment3: moment3 || false,
-        moment4: moment4 || false,
-        moment5: moment5 || false,
-        actionDone: actionDone || false,
-        result,
-      },
+    await db.insert(FormCuciTangan).values({
+      userId: parseInt(session.user.id),
+      date: new Date(date),
+      officerName,
+      profession,
+      room,
+      moment1: moment1 || false,
+      moment2: moment2 || false,
+      moment3: moment3 || false,
+      moment4: moment4 || false,
+      moment5: moment5 || false,
+      actionDone: actionDone || false,
+      result,
+      createdAt: new Date(),
     });
 
-    return NextResponse.json(form, { status: 201 });
+    const newForm = await db.select().from(FormCuciTangan).orderBy(desc(FormCuciTangan.id)).limit(1);
+
+    return NextResponse.json(newForm[0], { status: 201 });
   } catch (error) {
     console.error("POST cuci-tangan error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
