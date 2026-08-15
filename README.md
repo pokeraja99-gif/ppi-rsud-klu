@@ -5,7 +5,7 @@ Sistem Informasi Pencatatan dan Pelaporan Infeksi (PPI) untuk RSUD Kabupaten Lom
 ## 🚀 Tech Stack
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)
-- **Database ORM:** [Prisma](https://www.prisma.io/)
+- **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/)
 - **Database:** MySQL
 - **Authentication:** [NextAuth.js](https://next-auth.js.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
@@ -45,14 +45,10 @@ Ikuti langkah-langkah berikut untuk menjalankan aplikasi di komputer Anda:
    npm install
    ```
 
-2. **Migrasi Database Prisma**
-   Perintah ini akan membuat tabel di database MySQL Anda sesuai dengan skema yang ada di `prisma/schema.prisma`.
+2. **Migrasi Database Drizzle**
+   Perintah ini akan melakukan sinkronisasi skema ke database MySQL Anda sesuai dengan definisi di `src/db/schema.ts`.
    ```bash
-   npx prisma db push
-   ```
-   *(Opsional) Jika Anda ingin melihat/mengelola data database via browser:*
-   ```bash
-   npx prisma studio
+   npx drizzle-kit push
    ```
 
 3. **Jalankan Server Development**
@@ -61,8 +57,3 @@ Ikuti langkah-langkah berikut untuk menjalankan aplikasi di komputer Anda:
    ```
 
 4. Buka browser dan akses [http://localhost:3000](http://localhost:3000). Aplikasi sudah siap digunakan!
-
-## 🌍 Deployment & Domain
-
-Proyek ini dikonfigurasi untuk di-deploy ke **Vercel** dengan domain custom dari **IDCloudHost**. 
-Untuk informasi detail mengenai konfigurasi domain (`rsudklu.web.id` dan `ppi.rsudklu.web.id`), silakan baca file **[`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)**.
