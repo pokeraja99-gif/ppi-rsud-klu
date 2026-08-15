@@ -1,6 +1,6 @@
 # Sistem Informasi Form PPI - RSUD KLU
 
-Sistem Informasi Pencatatan dan Pelaporan Infeksi (PPI) untuk RSUD Kabupaten Lombok Utara (KLU). Aplikasi ini dibangun menggunakan Next.js untuk memudahkan pengisian form dan pelaporan data secara digital.
+Sistem Informasi Pencatatan dan Pelaporan Infeksi (PPI) untuk RSUD Kabupaten Lombok Utara (KLU). Aplikasi ini dibangun menggunakan Next.js untuk memudahkan pengisian form (Cuci Tangan, APD, HAIs, Log Book Harian IPCN) dan pelaporan data secara digital.
 
 ## 🚀 Tech Stack
 
@@ -24,6 +24,9 @@ Buat file `.env` di root direktori (selevel dengan `package.json`) dan isi denga
 ```env
 # Database Configuration (Sesuaikan dengan kredensial MySQL lokal Anda)
 DATABASE_URL="mysql://root:@localhost:3306/ppi_rsud_klu"
+
+# Jika mendeploy ke Vercel dengan TiDB Cloud Serverless, WAJIB tambahkan ?sslaccept=strict
+# Contoh: DATABASE_URL="mysql://user:pass@gateway01.tidbcloud.com:4000/db?sslaccept=strict"
 
 # NextAuth Configuration
 NEXTAUTH_SECRET="your-super-secret-key-for-development"

@@ -39,3 +39,13 @@ Jika AI agent diminta untuk melakukan troubleshooting DNS, ini adalah state tera
 
 ## 3. Database
 * Terdapat skema Prisma (`prisma/schema.prisma`). Pastikan string koneksi database (`.env`) dikonfigurasi dengan benar di environment variables Vercel agar aplikasi production berjalan lancar.
+* **TiDB Cloud Serverless:** Jika menggunakan TiDB Cloud, Vercel sering mengalami *timeout* atau error `P1001: Can't reach database server`. Ini terjadi karena TiDB mewajibkan SSL secara ketat.
+* **Solusi Error TiDB:** Pastikan Anda menambahkan parameter `?sslaccept=strict` di akhir *connection string* pada Environment Variables di Vercel. Contoh:
+  `mysql://user:password@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/nama_db?sslaccept=strict`
+* **Auto-Pause:** TiDB versi gratis dapat tertidur (Pause) jika tidak ada aktivitas. Percobaan *deploy* atau *login* pertama mungkin gagal karena butuh waktu 3-5 detik untuk membangunkan database. Lakukan *Redeploy* di Vercel atau *refresh* aplikasi untuk menyelesaikan masalah ini.
+
+## 4. Fitur Utama Terkini (per Agustus 2026)
+* Form Audit Kepatuhan (Cuci Tangan, APD, dll)
+* Surveilans Insiden HAIs
+* Manajemen Dokumen SOP
+* **Log Book Harian IPCN** (Terhubung langsung dengan *Dashboard Aktivitas Terbaru*)
