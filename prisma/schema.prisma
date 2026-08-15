@@ -314,7 +314,7 @@ model FormMonitoringIpal {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   tanggalMonitoring DateTime? @map("tanggal_monitoring")
-  namaPetugasAudit  Boolean   @default(false) @map("nama_petugas_audit")
+  namaPetugasAudit  String?   @map("nama_petugas_audit")
   namaPetugasIpal   String?   @map("nama_petugas_ipal")
   lingkunganIpal    String?   @map("lingkungan_ipal")
   bakIndikator      String?   @map("bak_indikator")
@@ -340,7 +340,7 @@ model FormAuditPembuanganLimbah {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   tanggal              DateTime?
-  namaPetugasAudit     Boolean   @default(false) @map("nama_petugas_audit")
+  namaPetugasAudit     String?   @map("nama_petugas_audit")
   unitRuangan          String?   @map("unit_ruangan")
   pemilahan            String?
   wadahLimbah          String?   @map("wadah_limbah")
@@ -430,7 +430,7 @@ model FormMonitoringKamarJenazah {
 
   tanggal                 DateTime?
   waktu                   String?
-  namaPetugasAuditor      Boolean   @default(false) @map("nama_petugas_auditor")
+  namaPetugasAuditor      String?   @map("nama_petugas_auditor")
   kondisiKebersihan       String?   @map("kondisi_kebersihan")
   lantaiKering            String?   @map("lantai_kering")
   ventilasi               String?
@@ -466,14 +466,14 @@ model FormLaporanTertusukJarum {
   bendaPenyebab           String?   @map("benda_penyebab")
   bagianTubuh             String?   @map("bagian_tubuh")
   kronologiSingkat        String?   @map("kronologi_singkat") @db.Text
-  tindakanPertama         Boolean   @default(false) @map("tindakan_pertama")
+  tindakanPertama         String?   @map("tindakan_pertama")
   menggunakanApd          String?   @map("menggunakan_apd")
-  statusPasienSumber      Boolean   @default(false) @map("status_pasien_sumber")
+  statusPasienSumber      String?   @map("status_pasien_sumber")
   pemeriksaanLab          String?   @map("pemeriksaan_lab")
   tanggalPemeriksaan      DateTime? @map("tanggal_pemeriksaan")
-  jenisPemeriksaanPetugas Boolean   @default(false) @map("jenis_pemeriksaan_petugas")
+  jenisPemeriksaanPetugas String?   @map("jenis_pemeriksaan_petugas")
   hasilPemeriksaanPetugas String?   @map("hasil_pemeriksaan_petugas")
-  jenisPemeriksaanPasien  Boolean   @default(false) @map("jenis_pemeriksaan_pasien")
+  jenisPemeriksaanPasien  String?   @map("jenis_pemeriksaan_pasien")
   hasilPemeriksaanPasien  String?   @map("hasil_pemeriksaan_pasien")
 
   user User @relation(fields: [userId], references: [id])
@@ -488,7 +488,7 @@ model FormMonitoringLinenLaundry {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   tanggal                DateTime?
-  namaAuditor            Boolean   @default(false) @map("nama_auditor")
+  namaAuditor            String?   @map("nama_auditor")
   namaPetugasLaundry     String?   @map("nama_petugas_laundry")
   b1Dipisahkan           String?   @map("b1_dipisahkan")
   b2Infeksius            String?   @map("b2_infeksius")

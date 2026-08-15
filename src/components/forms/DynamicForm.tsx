@@ -29,7 +29,17 @@ export function DynamicForm({ config, backHref = "/forms" }: DynamicFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>(() => {
+    const initial: Record<string, unknown> = {};
+    config.sections.forEach((sec) => {
+      sec.fields.forEach((f) => {
+        if (f.type === "date") {
+          initial[f.name] = new Date().toISOString().split("T")[0];
+        }
+      });
+    });
+    return initial;
+  });
 
   const updateField = useCallback((name: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -288,7 +298,7 @@ function FieldRenderer({
           {field.description && (
             <p className="text-xs text-muted-foreground">{field.description}</p>
           )}
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {field.options?.map((opt) => (
               <label
                 key={opt.value}
@@ -382,7 +392,7 @@ function CheckboxField({
       {field.description && (
         <p className="text-xs text-muted-foreground">{field.description}</p>
       )}
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {field.options?.map((opt) => (
           <label
             key={opt.value}

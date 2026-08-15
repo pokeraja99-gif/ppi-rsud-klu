@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Download, Loader2, Calendar as CalendarIcon, BarChart2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Calendar as CalendarIcon, BarChart2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from "recharts";
 
@@ -118,6 +118,8 @@ export default function RekapDataPage() {
   
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
   const getInitialDates = () => {
     const end = new Date();
     const start = new Date();
@@ -161,6 +163,64 @@ export default function RekapDataPage() {
 
     fetchData();
   }, [slug, config, router]);
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data terpilih?`)) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/rekap/${slug}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setData(prev => prev.filter(row => !selectedIds.includes(row.id)));
+        setSelectedIds([]);
+      } else {
+        alert("Gagal menghapus data: " + result.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat menghapus data.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredData.length === 0) return;
+
+    const headers = ["No", ...columns.map(col => col.label)];
+    const csvRows = [headers.join(",")];
+
+    filteredData.forEach((row, index) => {
+      const values = [
+        index + 1,
+        ...columns.map(col => {
+          let val = formatValue(row[col.key]);
+          if (typeof val === 'string') {
+            val = `"${val.replace(/"/g, '""')}"`;
+          }
+          return val;
+        })
+      ];
+      csvRows.push(values.join(","));
+    });
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Rekap_${config.title.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (!config) return null;
 
@@ -210,7 +270,7 @@ export default function RekapDataPage() {
     <div className="space-y-6 max-w-[100vw] overflow-hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => router.push("/rekap")}>
+          <Button variant="outline" size="icon" onClick={() => router.push("/forms")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
@@ -341,7 +401,7 @@ export default function RekapDataPage() {
                 </div>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="gap-2 h-8">
+            <Button variant="outline" size="sm" className="gap-2 h-8" onClick={handleExportCSV}>
               <Download className="w-4 h-4" />
               Export CSV
             </Button>
@@ -361,6 +421,20 @@ export default function RekapDataPage() {
               <Table className="w-full whitespace-nowrap">
                 <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                   <TableRow>
+                    <TableHead className="w-[40px] text-center">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 cursor-pointer accent-emerald-500"
+                        checked={filteredData.length > 0 && selectedIds.length === filteredData.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(filteredData.map(row => row.id));
+                          } else {
+                            setSelectedIds([]);
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead className="w-[50px] text-center">No</TableHead>
                     {columns.map((col) => (
                       <TableHead key={col.key} className="min-w-[150px]">
@@ -372,6 +446,20 @@ export default function RekapDataPage() {
                 <TableBody>
                   {filteredData.map((row, index) => (
                     <TableRow key={row.id}>
+                      <TableCell className="text-center">
+                        <input 
+                          type="checkbox"
+                          className="w-4 h-4 cursor-pointer accent-emerald-500"
+                          checked={selectedIds.includes(row.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds(prev => [...prev, row.id]);
+                            } else {
+                              setSelectedIds(prev => prev.filter(id => id !== row.id));
+                            }
+                          }}
+                        />
+                      </TableCell>
                       <TableCell className="text-center text-muted-foreground">
                         {index + 1}
                       </TableCell>
@@ -384,6 +472,20 @@ export default function RekapDataPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          
+          {filteredData.length > 0 && (
+            <div className="p-4 border-t bg-slate-50/50 flex justify-start">
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                disabled={selectedIds.length === 0 || isDeleting}
+                onClick={handleDeleteSelected}
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                Hapus Terpilih ({selectedIds.length})
+              </Button>
             </div>
           )}
         </CardContent>
