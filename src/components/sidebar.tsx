@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Database,
   Users,
+  BookOpen,
 } from "lucide-react";
 
 const navItems = [
@@ -39,6 +40,11 @@ const navItems = [
     title: "SOP PPI",
     href: "/sop",
     icon: FileText,
+  },
+  {
+    title: "Log book IPCN",
+    href: "/logbook",
+    icon: BookOpen,
   },
   {
     title: "Dokumen Lain-lain",
@@ -88,10 +94,16 @@ export function Sidebar() {
             return null;
           }
 
+          const hasTarget = 'target' in item;
+          const isExternal = hasTarget && (item as any).target === "_blank";
+          const Component = isExternal ? "a" : Link;
+
           return (
-            <Link
+            <Component
               key={item.href}
               href={item.href}
+              target={hasTarget ? (item as any).target : "_self"}
+              rel={isExternal ? "noopener noreferrer" : undefined}
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group",
@@ -108,7 +120,7 @@ export function Sidebar() {
               />
               <span className="flex-1">{item.title}</span>
               {active && <ChevronRight className="w-4 h-4 text-green-300" />}
-            </Link>
+            </Component>
           );
         })}
       </nav>

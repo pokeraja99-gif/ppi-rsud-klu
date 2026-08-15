@@ -49,6 +49,7 @@ model User {
   FormMonitoringLinenLaundry         FormMonitoringLinenLaundry[]
   FormPretestEdukasiGizi             FormPretestEdukasiGizi[]
   FormInsidenHais                    FormInsidenHais[]
+  FormLogbookIpcn                    FormLogbookIpcn[]
 
   @@map("users")
 }
@@ -550,4 +551,23 @@ model FormInsidenHais {
   user User @relation(fields: [userId], references: [id])
 
   @@map("form_insiden_hais")
+}
+
+model FormLogbookIpcn {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  date            DateTime
+  ipcnName        String   @map("ipcn_name")
+  room            String
+  activityType    String   @map("activity_type")
+  description     String   @db.Text
+  findings        String?  @db.Text
+  followUp        String?  @map("follow_up") @db.Text
+  followUpStatus  String?  @map("follow_up_status")
+  proofUrl        String?  @map("proof_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("form_logbook_ipcn")
 }
