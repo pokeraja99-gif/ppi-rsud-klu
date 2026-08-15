@@ -18,7 +18,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Username dan password harus diisi");
         }
 
-        const users = await db.select().from(User).where(eq(User.username, credentials.username)).limit(1);
+        let users;
+        try {
+          users = await db.select().from(User).where(eq(User.username, credentials.username)).limit(1);
+        } catch (error: any) {
+          console.error("Database Error:", error);
+          if (error.cause) console.error("Database Error Cause:", error.cause);
+          throw new Error("Gagal mengambil data pengguna dari database. Silakan hubungi administrator.");
+        }
         const user = users.length > 0 ? users[0] : null;
 
         if (!user) {
