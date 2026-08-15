@@ -47,6 +47,7 @@ export default function DashboardPage() {
     totalSops: 0,
     complianceRate: 0,
     haisThisMonth: 0,
+    recentActivities: [] as any[],
     chartData: {
       complianceData: [],
       haisData: [],
@@ -66,6 +67,7 @@ export default function DashboardPage() {
             totalSops: data.totalSops || 0,
             complianceRate: data.complianceRate || 0,
             haisThisMonth: data.haisThisMonth || 0,
+            recentActivities: data.recentActivities || [],
             chartData: data.chartData || {
               complianceData: [],
               haisData: [],
@@ -389,47 +391,16 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                {
-                  user: "Ns. Ahmad Fauzi",
-                  action: "mengisi Form Audit Cuci Tangan",
-                  unit: "Rawat Inap A",
-                  time: "10 menit lalu",
-                  type: "form",
-                },
-                {
-                  user: "Dr. Siti Nurhaliza",
-                  action: "mengunggah SOP Pengelolaan Limbah",
-                  unit: "Komite PPI",
-                  time: "1 jam lalu",
-                  type: "upload",
-                },
-                {
-                  user: "Bd. Citra Dewi",
-                  action: "mengisi Form Surveilans ISK",
-                  unit: "Ruang Bersalin",
-                  time: "2 jam lalu",
-                  type: "form",
-                },
-                {
-                  user: "Ns. Eka Saputra",
-                  action: "mengisi Form Audit APD",
-                  unit: "ICU",
-                  time: "3 jam lalu",
-                  type: "form",
-                },
-                {
-                  user: "Dr. Siti Nurhaliza",
-                  action: "mengunggah Laporan Triwulan Q2",
-                  unit: "Komite PPI",
-                  time: "5 jam lalu",
-                  type: "upload",
-                },
-              ].map((activity, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
-                >
+              {dashboardData.recentActivities.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  Belum ada aktivitas terbaru
+                </div>
+              ) : (
+                dashboardData.recentActivities.map((activity, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
                   <div
                     className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center ${
                       activity.type === "form"

@@ -168,11 +168,50 @@ export async function GET() {
       { name: "Momen 5", value: m5Ops > 0 ? Math.round((m5Comp/m5Ops)*100) : 0, label: "Setelah Kontak Lingkungan" },
     ];
 
+    // Fetch recent activities
+    const recentLogs = await prisma.formLogbookIpcn.findMany({
+      where: isAdmin ? {} : unitFilter,
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: { user: { select: { name: true } } }
+    });
+
+    const recentSops = await prisma.sopDocument.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
+    const activities = [
+      ...recentLogs.map(log => ({
+        user: log.user?.name || log.ipcnName,
+        action: `mengisi Logbook: ${log.activityType}`,
+        unit: log.room,
+        time: log.createdAt,
+        type: 'form'
+      })),
+      ...recentSops.map(sop => ({
+        user: sop.uploadedBy,
+        action: `mengunggah dokumen SOP: ${sop.title}`,
+        unit: 'Komite PPI',
+        time: sop.createdAt,
+        type: 'upload'
+      }))
+    ];
+
+    activities.sort((a, b) => b.time.getTime() - a.time.getTime());
+    const recentActivities = activities.slice(0, 5).map(act => ({
+      ...act,
+      time: act.time.toLocaleString('id-ID', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      }) + ' WIB'
+    }));
+
     return NextResponse.json({
       totalForms,
       totalSops,
       complianceRate,
       haisThisMonth,
+      recentActivities,
       chartData: {
         complianceData,
         haisData,
