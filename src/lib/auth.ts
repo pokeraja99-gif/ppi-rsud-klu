@@ -5,6 +5,11 @@ import { db } from "@/lib/db";
 import { User } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// In-memory rate limiter for login attempts
+const rateLimitMap = new Map<string, { count: number; lastAttempt: number }>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -16,6 +21,21 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
           throw new Error("Username dan password harus diisi");
+        }
+
+        const username = credentials.username;
+        const now = Date.now();
+        const rateLimit = rateLimitMap.get(username);
+
+        if (rateLimit) {
+          if (rateLimit.count >= MAX_ATTEMPTS && now - rateLimit.lastAttempt < LOCKOUT_TIME) {
+            const remainingTime = Math.ceil((LOCKOUT_TIME - (now - rateLimit.lastAttempt)) / 60000);
+            throw new Error(`Terlalu banyak percobaan. Coba lagi dalam ${remainingTime} menit.`);
+          }
+          if (now - rateLimit.lastAttempt >= LOCKOUT_TIME) {
+            // Reset if lockout time has passed
+            rateLimitMap.delete(username);
+          }
         }
 
         let users;
@@ -39,8 +59,13 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
+          const currentLimit = rateLimitMap.get(username) || { count: 0, lastAttempt: now };
+          rateLimitMap.set(username, { count: currentLimit.count + 1, lastAttempt: now });
           throw new Error("Password salah");
         }
+
+        // Reset rate limit on success
+        rateLimitMap.delete(username);
 
         return {
           id: String(user.id),
@@ -77,6 +102,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 2 * 60 * 60, // 2 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

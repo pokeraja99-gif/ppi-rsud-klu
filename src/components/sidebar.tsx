@@ -73,11 +73,13 @@ export function Sidebar() {
     <div className="flex flex-col h-full">
       {/* Logo / Header */}
       <div className="p-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Logo RSUD KLU" width={40} height={40} className="object-contain drop-shadow-md" />
+        <div className="flex items-center gap-3 group">
+          <div className="relative w-11 h-11 shrink-0 rounded-full overflow-hidden shadow-lg border border-white/30 group-hover:scale-110 transition-transform duration-500">
+            <Image src="/logo.png" alt="Logo RSUD KLU" fill className="object-cover" />
+          </div>
           <div>
-            <h2 className="font-bold text-white text-sm leading-tight">SI-PPI</h2>
-            <p className="text-[10px] text-emerald-200/70 leading-tight">RSUD Kab. Lombok Utara</p>
+            <h2 className="font-bold text-white text-sm leading-tight group-hover:text-green-300 transition-colors">SI-PPI</h2>
+            <p className="text-[10px] text-emerald-200/70 leading-tight mt-0.5">RSUD Kab. Lombok Utara</p>
           </div>
         </div>
       </div>

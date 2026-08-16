@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Load saved credentials on mount
+  // Load saved credentials on mount and check for timeout error
   useEffect(() => {
     const savedUsername = localStorage.getItem("ppi_username");
     const savedPassword = localStorage.getItem("ppi_password");
@@ -27,6 +27,13 @@ export default function LoginPage() {
       setUsername(savedUsername);
       setPassword(savedPassword);
       setRememberMe(true);
+    }
+
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("error") === "timeout") {
+        setError("Sesi Anda telah berakhir karena tidak aktif selama 10 menit. Silakan login kembali.");
+      }
     }
   }, []);
 
@@ -72,8 +79,10 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md px-4 animate-fade-in-up">
         {/* Hospital branding */}
-        <div className="text-center mb-8 flex flex-col items-center">
-          <Image src="/logo.png" alt="Logo RSUD KLU" width={80} height={80} className="mb-4 drop-shadow-xl" />
+        <div className="text-center mb-5 flex flex-col items-center">
+          <div className="relative mb-4 w-28 h-28 rounded-full overflow-hidden shadow-xl border-2 border-white/80 hover:scale-110 transition-transform duration-500">
+            <Image src="/logo.png" alt="Logo RSUD KLU" fill className="object-cover" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
             Sistem Informasi PPI
           </h1>

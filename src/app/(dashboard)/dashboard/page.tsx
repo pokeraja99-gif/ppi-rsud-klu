@@ -36,7 +36,7 @@ import {
 
 // Mock data arrays removed, data is now fetched dynamically
 
-const PIE_COLORS = ["#06b6d4", "#8b5cf6", "#f59e0b", "#10b981", "#ef4444"];
+const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"];
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -238,8 +238,8 @@ export default function DashboardPage() {
                   />
                   <defs>
                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#06b6d4" />
-                      <stop offset="100%" stopColor="#3b82f6" />
+                      <stop offset="0%" stopColor="#34d399" />
+                      <stop offset="100%" stopColor="#059669" />
                     </linearGradient>
                   </defs>
                 </BarChart>

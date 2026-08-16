@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import * as schema from "@/db/schema";
 import { desc } from "drizzle-orm";
+import { z } from "zod";
 
 const modelMap: Record<string, any> = {
   "cuci-tangan": schema.FormCuciTangan,
@@ -63,14 +64,24 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { formType, formTitle, data } = body;
 
-    if (!formType || !data) {
+    const submissionSchema = z.object({
+      formType: z.string().min(1, "Form type tidak boleh kosong"),
+      formTitle: z.string().optional(),
+      data: z.record(z.any()).refine((val) => Object.keys(val).length > 0, {
+        message: "Data form tidak boleh kosong",
+      }),
+    });
+
+    const parsed = submissionSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Data tidak lengkap" },
+        { success: false, error: "Data tidak valid atau tidak lengkap" },
         { status: 400 }
       );
     }
+
+    const { formType, formTitle, data } = parsed.data;
 
     const parsedData = convertKeysToCamelCase(data);
     
